@@ -1,0 +1,13 @@
+{
+  "name": "github-pr-events-resource",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "apollo-client-preset": "^1.0.6",
+    "get-stdin": "^5.0.1",
+    "graphql": "^0.12.3",
+    "graphql-tag": "^2.6.1",
+    "node-fetch": "^1.7.3"
+  }
+}

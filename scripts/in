@@ -1,0 +1,40 @@
+#! /usr/bin/env node
+
+const {getStdin, getSourceConfig} = require('./common.js');
+const fs = require('fs')
+
+
+
+async function doIn() {
+    try {
+        if (process.argv.length != 3) {
+            throw new Error("No output directory specified on $1!")
+        }
+        
+        let targetDir = process.argv[2]
+
+        if (targetDir[targetDir.length - 1] != "/") {
+            targetDir += "/"
+        }
+
+        // get stdin
+        let rawJson = await getStdin()
+    
+        let version = rawJson["version"]
+    
+        let jsonOutput = JSON.stringify(version)
+
+        fs.writeFileSync(targetDir + "pull_request", jsonOutput)
+
+        console.log(JSON.stringify({
+            version: version
+        }))
+    
+    } catch (err) {
+        console.error(err)
+    }
+   
+
+}
+
+doIn();
