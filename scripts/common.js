@@ -3,8 +3,14 @@ const stdin = require('get-stdin');
 /**
  * This function simply parses STDIN to JSON
  */
-async function getStdin() {
-    let result = JSON.parse(await stdin());
+async function getStdinAsJson() {
+  var result;  
+  try {
+      result = JSON.parse(await stdin());
+    } catch(error) {
+      console.error("Error thrown during parsing stdin!")
+      console.error(error)
+    }
     return result
 }
 
@@ -12,47 +18,76 @@ async function getStdin() {
  * Makes sure all required params are there
  * @param config raw JSON input
  */
-function validateSourceConfig(config) {
-  
-    if (!config["source"]) {
-      throw new Error("No 'source' key found, malformed input!")
+function validateSourceConfig(configJson) {
+    if (!configJson["source"]) {
+      throw new Error("No 'source' key found, malformed json input!")
     }
-  
   
     let requiredKeys = [
       "access_token",
       "owner",
       "repo"
     ];
+
+    const validStates = ["MERGED", "CLOSED"]
   
+    // make sure all the required keys are here
     for (let key of requiredKeys) {
-      if (!config["source"][key]) {
+      if (!configJson["source"][key]) {
         throw new Error(`Required parameter '${key}' not given!`)
       }
     }
+
+    // if states is given, make sure it is a list
+    // and that it only contains MERGED or CLOSED
+    if (configJson["source"]["states"]) {
+      let states = configJson["source"]["states"]
+      if (!Array.isArray(states)) {
+        throw new Error("source.states is not an array!")
+      } else {
+        for (let s of states) {
+          if (!validStates.includes(s.toUpperCase())) {
+            throw new Error("Unsupported PR state : " + s)
+          }
+        }
+      }
+    }
+    
 }
   
 /**
  * Returns the raw source configuration
  */
-async function getSourceConfig(rawConfig) {
+async function getSourceConfig(configJson) {
 
+    try {
+      validateSourceConfig(configJson)
 
-    validateSourceConfig(rawConfig)
+      // Default values for source config
+      const sourceDefaults = {
+        graphq_api: "https://api.github.com/graphql",
+        base_branch: "master",
+        first: 3,
+        states: [
+          "MERGED",
+          "CLOSED"
+        ]
+      }
+  
+      mergedSourceConfig = {...sourceDefaults, ...configJson.source} 
+      const capitalizedStates = mergedSourceConfig.states.map(x => x.toUpperCase() )
+      mergedSourceConfig.states = capitalizedStates
+      configJson.source = mergedSourceConfig
 
-    finalConfig = {...sourceDefaults, ...rawConfig.source}
-
-    return finalConfig
-
+      return configJson
+    } catch(err) {
+      console.error("Error thrown during source config validation!")
+      console.error(err)
+    }
+  
 }
 
 
-const sourceDefaults = {
-    graphq_api: "https://api.github.com/graphql",
-    base_branch: "master",
-    first: 5
-}
 
-exports.getStdin = getStdin;
+exports.getStdinAsJson = getStdinAsJson;
 exports.getSourceConfig = getSourceConfig;
-exports.sourceDefaults = sourceDefaults;

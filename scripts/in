@@ -1,8 +1,13 @@
 #! /usr/bin/env node
 
-const {getStdin, getSourceConfig} = require('./common.js');
+const {getStdinAsJson, getSourceConfig} = require('./common.js');
 const fs = require('fs')
 
+
+function outputVersionToFile(targetDir, version) {
+    let jsonOutput = JSON.stringify(version)
+    fs.writeFileSync(targetDir + "pull_request", jsonOutput)
+}
 
 
 async function doIn() {
@@ -11,21 +16,22 @@ async function doIn() {
             throw new Error("No output directory specified on $1!")
         }
         
+        // output directory
         let targetDir = process.argv[2]
-
         if (targetDir[targetDir.length - 1] != "/") {
             targetDir += "/"
         }
 
-        // get stdin
-        let rawJson = await getStdin()
-    
+        // get stdin and extract the .version
+        let rawJson = await getStdinAsJson()
         let version = rawJson["version"]
-    
-        let jsonOutput = JSON.stringify(version)
+        if (!version) {
+            throw new Error("No version inside of stdin")
+        }
 
-        fs.writeFileSync(targetDir + "pull_request", jsonOutput)
-
+        outputVersionToFile(targetDir, version)
+        
+        // output the version to stdout
         console.log(JSON.stringify({
             version: version
         }))
@@ -33,8 +39,6 @@ async function doIn() {
     } catch (err) {
         console.error(err)
     }
-   
-
 }
 
 doIn();

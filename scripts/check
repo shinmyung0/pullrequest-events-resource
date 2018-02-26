@@ -1,31 +1,41 @@
 #! /usr/bin/env node
 
-const {getStdin, getSourceConfig} = require('./common.js')
+const {getStdinAsJson, getSourceConfig} = require('./common.js')
 const fetch = require('node-fetch')
 const { ApolloClient } = require('apollo-client')
 const { HttpLink } = require('apollo-link-http');
 const { InMemoryCache } = require('apollo-cache-inmemory');
 const gql = require('graphql-tag');
 
+
+
+
 /**
  * This function makes the graphql request to fetch the most recent 10 pull requests
  * That have been merged
- * @param config source config object
+ * @param stdinConfig stdin parsed as json, passed in by the concourse runtime
  */
-async function getMergedPullRequests(rawConfig) {
+async function getMergedPullRequests(stdinConfig) {
 
-  let config = await getSourceConfig(rawConfig)
+  // use only the 
+  let sourceConfig = stdinConfig.source
+
 
   // params necessary for request
-  let graphqlApi = config["graphql_api"]
-  let accessToken = config["access_token"]
-  let baseBranch = config["base_branch"]
-  let owner = config["owner"]
-  let repo = config["repo"]
-  const first = config["first"]
+  const graphqlApi = sourceConfig["graphql_api"]
+  const accessToken = sourceConfig["access_token"]
+  const baseBranch = sourceConfig["base_branch"]
+  const owner = sourceConfig["owner"]
+  const repo = sourceConfig["repo"]
+  const first = sourceConfig["first"]
+  const states = sourceConfig["states"]
+
+
+  // if a version was passed in, set .cursor as after
+  // to grab only the versions after the cursor
   let after = undefined;
-  if (rawConfig["version"]) {
-    after = rawConfig["version"].cursor
+  if (stdinConfig["version"]) {
+    after = stdinConfig["version"].cursor
   }
   
 
@@ -41,13 +51,15 @@ async function getMergedPullRequests(rawConfig) {
     cache: new InMemoryCache()
   });
 
+
   const closedPrQuery = gql`
     query RecentlyMergedOrClosedPullRequests(
       $owner: String!, 
       $repo: String!, 
       $baseBranch: String!, 
       $first: Int!,
-      $after: String
+      $after: String,
+      $states: [PullRequestState!]!
     ) {
       repository(owner: $owner, name: $repo) {
         nameWithOwner
@@ -55,7 +67,7 @@ async function getMergedPullRequests(rawConfig) {
         pullRequests(
           first: $first,
           baseRefName: $baseBranch, 
-          states: [MERGED, CLOSED], 
+          states: $states, 
           orderBy:{field:UPDATED_AT, direction:ASC},
           after: $after
         ) {
@@ -67,6 +79,10 @@ async function getMergedPullRequests(rawConfig) {
               url
               baseRefName
               headRefName
+              merged
+              closed
+              mergedAt
+              closedAt
             }
           }
         }
@@ -81,7 +97,8 @@ async function getMergedPullRequests(rawConfig) {
       repo,
       baseBranch,
       first,
-      after
+      after,
+      states
     }
   });
 
@@ -90,49 +107,62 @@ async function getMergedPullRequests(rawConfig) {
 }
 
 
+
 /**
  * Returns a list of versions
- * @param pullRequests array of pull request objects
+ * @param pullRequests array of pull request objects returned from graphql query
  */
 function convertToVersions(pullRequests) {
 
   let versions = [];
 
   for (let pr of pullRequests) {
+
+    // since this resource only checks MERGED or CLOSED
+    // if it isn't merged, then it will be closed
+    let finalState = pr.node.merged ? 'MERGED' : 'CLOSED'
+
     versions.push({
       id: pr.node.id,
       cursor: pr.cursor,
       number: pr.node.number.toString(),
       url: pr.node.url,
       baseBranch: pr.node.baseRefName,
-      headBranch: pr.node.headRefName
+      headBranch: pr.node.headRefName,
+      state: finalState,
+      // if merged or closed will have either of these timestamps
+      // merged prs have both merged and closed
+      timestamp: pr.node.mergedAt || pr.node.closedAt
     })
   }
 
   return versions
 }
 
-/**
- * Main function of the check script
- */
+
+/** 
+ * This is the main function
+ * Read source configuration from stdin and then runs a graphQL query
+ * to fetch MERGED or CLOSED pull requests
+*/
 async function check() {
 
-  try {
-    let rawConfig = await getStdin()
+  console.error("Checking for pull request events...")
+  stdinJson = await getStdinAsJson()
+  finalConfig = await getSourceConfig(stdinJson)
+  pullRequests = await getMergedPullRequests(finalConfig)
+  resultingVersions = convertToVersions(pullRequests)
 
-    let pullRequests = await getMergedPullRequests(rawConfig)
-  
-    let versions = convertToVersions(pullRequests)
-
-    if (rawConfig.version) {
-      versions = [rawConfig.version].concat(versions)
-    }
-  
-    console.log(JSON.stringify(versions))
-  } catch (err) {
-    console.error(err)
-    process.exit(1)
+  // if a version was given, concat the resulting versions
+  // as per concourse resource spec
+  if (finalConfig.version) {
+    resultingVersions = [finalConfig.version].concat(resultingVersions)
   }
+
+
+  // output the resulting versions to stdout for consumption by concourse
+  console.log(JSON.stringify(resultingVersions))
 }
+
 
 check()
