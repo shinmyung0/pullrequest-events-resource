@@ -16,7 +16,7 @@ async function getStdinAsJson() {
 
 /**
  * Makes sure all required params are there
- * @param config raw JSON input
+ * @param configJson raw JSON input from stdin
  */
 function validateSourceConfig(configJson) {
     if (!configJson["source"]) {
@@ -57,13 +57,15 @@ function validateSourceConfig(configJson) {
   
 /**
  * Returns the raw source configuration
+ * @param configJson json parsed stdin
  */
 async function getSourceConfig(configJson) {
 
     try {
+      // check the .source key for valid syntax
       validateSourceConfig(configJson)
 
-      // Default values for source config
+      // Default values for .source config
       const sourceDefaults = {
         graphq_api: "https://api.github.com/graphql",
         base_branch: "master",
@@ -80,14 +82,13 @@ async function getSourceConfig(configJson) {
       configJson.source = mergedSourceConfig
 
       return configJson
+
     } catch(err) {
       console.error("Error thrown during source config validation!")
       console.error(err)
     }
   
 }
-
-
 
 exports.getStdinAsJson = getStdinAsJson;
 exports.getSourceConfig = getSourceConfig;
