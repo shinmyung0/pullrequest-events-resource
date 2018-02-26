@@ -1,5 +1,15 @@
 # pullrequest-events-resource
 
+This is a Concourse [resource][concourse-resource] that fetches pull requests that have been `MERGED` or `CLOSED` recently.
+This is meant to address the use case of pipelines [triggering on merge or close][git-issue] which are not supported within the excellent
+[`github-pullrequest-resource`][gpr]. This resource does not do any sort of `git clone` from git. 
+It is rather meant to provide information about merged or closed pull request branches to trigger downstream jobs.
+
+
+[concourse-resource]: https://concourse.ci/implementing-resources.html
+[git-issue]: https://github.com/jtarchie/github-pullrequest-resource/issues/128
+[gpr]: https://github.com/jtarchie/github-pullrequest-resource
+
 # Source Configuration
 
 ```yaml
@@ -30,7 +40,7 @@ resources:
 * `owner` : Repo owner. **required**
 * `repo` : Repository. **required**
 * `access_token`: Github API access token, should have read-permissions on repo. **required**
-* `first` : The number of pull request events to fetch from latest. default is `5`.
+* `first` : The number of pull request events to fetch from latest. default is `3`.
 * `states` : List of pull request states to listen for. Only supports `MERGED` and `CLOSED`. Default is both.
 
 
