@@ -81,4 +81,19 @@ This will output versions that look like this:
 
 - `in`: Given a version, will output that JSON object to `$output_dir/pull_request` JSON file.
 
+`$output_dir/pull_request` file example:
+```json
+{
+  "id": "MDExOlB1bGxSZXF1ZXN0MTcxMjQ5NzQw",
+  "cursor": "Y3Vyc29yOnYyOpK5MjAxOC0wMi0yNVQxMjozNjoxNi0wODowMM4KNRBM",
+  "number": "2",
+  "url": "https://github.com/shinmyung0/fixture-repo/pull/2",
+  "baseBranch": "master",
+  "headBranch": "test-closed-branch",
+  "state": "closed",
+  "timestamp": "2018-02-25T20:36:16Z"
+}
+```
+
+
 - `out`: Not implemented.
