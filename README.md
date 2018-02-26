@@ -46,8 +46,6 @@ resources:
 * `states` : List of pull request states to listen for. Only supports `MERGED` and `CLOSED`. Default is both.
 
 
-
-
 # Behavior
 
 - `check`: check for recently merged or closed pull requests
