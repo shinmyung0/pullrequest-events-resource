@@ -14,7 +14,6 @@ const {
 */
 async function check() {
 
-  console.error("Checking for pull request events...")
   stdinJson = await getStdinAsJson()
   finalConfig = await getSourceConfig(stdinJson)
   pullRequests = await getMergedPullRequests(finalConfig)
