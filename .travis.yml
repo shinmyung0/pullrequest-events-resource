@@ -6,4 +6,6 @@ cache:
   directories:
     - "scripts/node_modules"
 
-script: "cd scripts && yarn run test:all && cd ../"
+
+
+script: "./build.sh"
