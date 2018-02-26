@@ -61,7 +61,7 @@ This will output versions that look like this:
     "url": "https://github.com/shinmyung0/fixture-repo/pull/1",
     "baseBranch": "master",
     "headBranch": "test-merged-branch",
-    "state": "merged",
+    "state": "MERGED",
     "timestamp": "2018-02-25T20:34:44Z"
   },
   {
@@ -71,7 +71,7 @@ This will output versions that look like this:
     "url": "https://github.com/shinmyung0/fixture-repo/pull/2",
     "baseBranch": "master",
     "headBranch": "test-closed-branch",
-    "state": "closed",
+    "state": "CLOSED",
     "timestamp": "2018-02-25T20:36:16Z"
   }
 ]
@@ -90,7 +90,7 @@ This will output versions that look like this:
   "url": "https://github.com/shinmyung0/fixture-repo/pull/2",
   "baseBranch": "master",
   "headBranch": "test-closed-branch",
-  "state": "closed",
+  "state": "CLOSED",
   "timestamp": "2018-02-25T20:36:16Z"
 }
 ```
