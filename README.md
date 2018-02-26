@@ -1,4 +1,4 @@
-# pullrequest-events-resource
+# pullrequest-events-resource [![Build Status](https://travis-ci.org/shinmyung0/pullrequest-events-resource.svg?branch=master)](https://travis-ci.org/shinmyung0/pullrequest-events-resource)
 
 This is a Concourse [resource][concourse-resource] that fetches pull requests that have been `MERGED` or `CLOSED` recently.
 This is meant to address the use case of pipelines [triggering on merge or close][git-issue] which are not supported within the excellent
