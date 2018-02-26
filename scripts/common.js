@@ -14,9 +14,9 @@ async function getStdinAsJson() {
   var result;  
   try {
       result = JSON.parse(await stdin());
-    } catch(error) {
+    } catch(err) {
       console.error("Error thrown during parsing stdin!")
-      console.error(error)
+      throw err
     }
     return result
 }
@@ -67,7 +67,7 @@ function validateSourceConfig(configJson) {
  * with any defaults
  * @param configJson json parsed stdin
  */
-async function getSourceConfig(configJson) {
+function getSourceConfig(configJson) {
 
     try {
       // check the .source key for valid syntax
@@ -75,7 +75,7 @@ async function getSourceConfig(configJson) {
 
       // Default values for .source config
       const sourceDefaults = {
-        graphq_api: "https://api.github.com/graphql",
+        graphql_api: "https://api.github.com/graphql",
         base_branch: "master",
         first: 3,
         states: [
@@ -93,7 +93,7 @@ async function getSourceConfig(configJson) {
 
     } catch(err) {
       console.error("Error thrown during source config validation!")
-      console.error(err)
+      throw err
     }
   
 }
@@ -201,7 +201,7 @@ async function getMergedPullRequests(stdinConfig) {
  * Returns a list of versions given an array of pullrequestedge objects
  * @param pullRequests array of pull request objects returned from graphql query
  */
-function convertToVersions(pullRequests) {
+function convertToVersions(pullRequests, sourceConfig) {
 
   let versions = [];
 
@@ -225,13 +225,21 @@ function convertToVersions(pullRequests) {
     })
   }
 
+  // if a version was given, concat the resulting versions
+  // as per concourse resource spec, given version should be
+  // at the top. If no versions, then will be list containing
+  // initial version
+  if (sourceConfig.version) {
+    versions = [sourceConfig.version].concat(versions)
+  }
+
   return versions
 }
 
 
-function outputVersionToFile(targetDir, version) {
+function outputVersionToFile(targetDir, version, filename="pull_request") {
   let jsonOutput = JSON.stringify(version)
-  fs.writeFileSync(targetDir + "pull_request", jsonOutput)
+  fs.writeFileSync(targetDir + filename, jsonOutput)
 }
 
 exports.getStdinAsJson = getStdinAsJson;

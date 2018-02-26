@@ -20,13 +20,6 @@ async function check() {
   pullRequests = await getMergedPullRequests(finalConfig)
   resultingVersions = convertToVersions(pullRequests)
 
-  // if a version was given, concat the resulting versions
-  // as per concourse resource spec
-  if (finalConfig.version) {
-    resultingVersions = [finalConfig.version].concat(resultingVersions)
-  }
-
-
   // output the resulting versions to stdout for consumption by concourse
   console.log(JSON.stringify(resultingVersions))
 }

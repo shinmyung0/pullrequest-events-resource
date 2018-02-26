@@ -38,10 +38,10 @@ resources:
       - CLOSED
 ```
 
-* `graphql_api` : Github GraphQL API endpoint. By default it is `https://api.github.com/graphql`
 * `owner` : Repo owner. **required**
 * `repo` : Repository. **required**
 * `access_token`: Github API access token, should have read-permissions on repo. **required**
+* `graphql_api` : Github GraphQL API endpoint. By default it is `https://api.github.com/graphql`
 * `first` : The number of pull request events to fetch from latest. default is `3`.
 * `states` : List of pull request states to listen for. Only supports `MERGED` and `CLOSED`. Default is both.
 

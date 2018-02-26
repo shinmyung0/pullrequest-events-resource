@@ -9,5 +9,12 @@
     "graphql": "^0.12.3",
     "graphql-tag": "^2.6.1",
     "node-fetch": "^1.7.3"
+  },
+  "devDependencies": {
+    "jest": "^22.4.2"
+  },
+  "scripts": {
+    "test": "jest common.test.js",
+    "test:integration": "jest integration.test.js"
   }
 }
