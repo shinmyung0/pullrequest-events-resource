@@ -1,15 +1,15 @@
 #! /usr/bin/env node
 
-const {getStdinAsJson, getSourceConfig} = require('./common.js');
-const fs = require('fs')
+const {
+    getStdinAsJson, 
+    getSourceConfig, outputVersionToFile
+} = require('./common.js');
 
 
-function outputVersionToFile(targetDir, version) {
-    let jsonOutput = JSON.stringify(version)
-    fs.writeFileSync(targetDir + "pull_request", jsonOutput)
-}
-
-
+/*
+ * Main function for in script. Given a version will output
+ * under targetDir to pull_request file
+ */
 async function doIn() {
     try {
         if (process.argv.length != 3) {

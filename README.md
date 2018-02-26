@@ -40,7 +40,8 @@ resources:
 
 - `check`: check for recently merged or closed pull requests
 
-This will output as versions
+This will output versions that look like this:
+
 ```json
 [
   {
@@ -68,6 +69,6 @@ This will output as versions
 ```
 
 
-- `in`: get information about the recently closed pull requests which will be output as `$output_dir/pull_request` JSON file.
+- `in`: Given a version, will output that JSON object to `$output_dir/pull_request` JSON file.
 
-- `out`: noop
+- `out`: Not implemented.

@@ -1,4 +1,11 @@
 const stdin = require('get-stdin');
+const fetch = require('node-fetch')
+const { ApolloClient } = require('apollo-client')
+const { HttpLink } = require('apollo-link-http');
+const { InMemoryCache } = require('apollo-cache-inmemory');
+const gql = require('graphql-tag');
+const fs = require('fs')
+
 
 /**
  * This function simply parses STDIN to JSON
@@ -15,7 +22,7 @@ async function getStdinAsJson() {
 }
 
 /**
- * Makes sure all required params are there
+ * Makes sure all required source config is there
  * @param configJson raw JSON input from stdin
  */
 function validateSourceConfig(configJson) {
@@ -56,7 +63,8 @@ function validateSourceConfig(configJson) {
 }
   
 /**
- * Returns the raw source configuration
+ * Returns the raw source configuration merged
+ * with any defaults
  * @param configJson json parsed stdin
  */
 async function getSourceConfig(configJson) {
@@ -90,5 +98,144 @@ async function getSourceConfig(configJson) {
   
 }
 
+
+/**
+ * This function makes the graphql request to fetch the most recent 10 pull requests
+ * That have been merged.
+ * @param stdinConfig stdin parsed as json, passed in by the concourse runtime
+ */
+async function getMergedPullRequests(stdinConfig) {
+
+  // use only the 
+  let sourceConfig = stdinConfig.source
+
+
+  // params necessary for request
+  const graphqlApi = sourceConfig["graphql_api"]
+  const accessToken = sourceConfig["access_token"]
+  const baseBranch = sourceConfig["base_branch"]
+  const owner = sourceConfig["owner"]
+  const repo = sourceConfig["repo"]
+  const first = sourceConfig["first"]
+  const states = sourceConfig["states"]
+
+
+  // if a version was passed in, set .cursor as after
+  // to grab only the versions after the cursor
+  let after = undefined;
+  if (stdinConfig["version"]) {
+    after = stdinConfig["version"].cursor
+  }
+  
+
+  // setup the client
+  const client = new ApolloClient({
+    link: new HttpLink({
+      uri: graphqlApi,
+      fetch: fetch,
+      headers: {
+        authorization: "Bearer " + accessToken
+      }
+    }),
+    cache: new InMemoryCache()
+  });
+
+
+  const closedPrQuery = gql`
+    query RecentlyMergedOrClosedPullRequests(
+      $owner: String!, 
+      $repo: String!, 
+      $baseBranch: String!, 
+      $first: Int!,
+      $after: String,
+      $states: [PullRequestState!]!
+    ) {
+      repository(owner: $owner, name: $repo) {
+        nameWithOwner
+        url 
+        pullRequests(
+          first: $first,
+          baseRefName: $baseBranch, 
+          states: $states, 
+          orderBy:{field:UPDATED_AT, direction:ASC},
+          after: $after
+        ) {
+          edges {
+            cursor
+            node{
+              id
+              number
+              url
+              baseRefName
+              headRefName
+              merged
+              closed
+              mergedAt
+              closedAt
+            }
+          }
+        }
+      }
+    }
+  `;
+
+  let resp = await client.query({
+    query: closedPrQuery,
+    variables: {
+      owner,
+      repo,
+      baseBranch,
+      first,
+      after,
+      states
+    }
+  });
+
+  return resp.data.repository.pullRequests.edges
+
+}
+
+
+
+/**
+ * Returns a list of versions given an array of pullrequestedge objects
+ * @param pullRequests array of pull request objects returned from graphql query
+ */
+function convertToVersions(pullRequests) {
+
+  let versions = [];
+
+  for (let pr of pullRequests) {
+
+    // since this resource only checks MERGED or CLOSED
+    // if it isn't merged, then it will be closed
+    let finalState = pr.node.merged ? 'MERGED' : 'CLOSED'
+
+    versions.push({
+      id: pr.node.id,
+      cursor: pr.cursor,
+      number: pr.node.number.toString(),
+      url: pr.node.url,
+      baseBranch: pr.node.baseRefName,
+      headBranch: pr.node.headRefName,
+      state: finalState,
+      // if merged or closed will have either of these timestamps
+      // merged prs have both merged and closed
+      timestamp: pr.node.mergedAt || pr.node.closedAt
+    })
+  }
+
+  return versions
+}
+
+
+function outputVersionToFile(targetDir, version) {
+  let jsonOutput = JSON.stringify(version)
+  fs.writeFileSync(targetDir + "pull_request", jsonOutput)
+}
+
 exports.getStdinAsJson = getStdinAsJson;
 exports.getSourceConfig = getSourceConfig;
+exports.getMergedPullRequests = getMergedPullRequests;
+exports.convertToVersions = convertToVersions;
+exports.outputVersionToFile = outputVersionToFile;
