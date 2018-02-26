@@ -15,6 +15,7 @@
   },
   "scripts": {
     "test": "jest common.test.js",
-    "test:integration": "jest integration.test.js"
+    "test:integration": "jest integration.test.js",
+    "test:all": "jest"
   }
 }
