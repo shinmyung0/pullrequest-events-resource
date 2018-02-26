@@ -18,7 +18,7 @@ async function check() {
   stdinJson = await getStdinAsJson()
   finalConfig = await getSourceConfig(stdinJson)
   pullRequests = await getMergedPullRequests(finalConfig)
-  resultingVersions = convertToVersions(pullRequests)
+  resultingVersions = convertToVersions(pullRequests, finalConfig)
 
   // output the resulting versions to stdout for consumption by concourse
   console.log(JSON.stringify(resultingVersions))
