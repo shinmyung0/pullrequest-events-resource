@@ -6,6 +6,8 @@ This is meant to address the use case of pipelines [triggering on merge or close
 It is rather meant to provide information about merged or closed pull request branches to trigger downstream jobs.
 
 
+** This resource currently only supports Github **
+
 [concourse-resource]: https://concourse.ci/implementing-resources.html
 [git-issue]: https://github.com/jtarchie/github-pullrequest-resource/issues/128
 [gpr]: https://github.com/jtarchie/github-pullrequest-resource
