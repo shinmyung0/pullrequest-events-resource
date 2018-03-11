@@ -1,0 +1,45 @@
+resource_types:
+  - name: pull-request-events
+    type: docker-image
+    source:
+      repository: shinmyung0/pullrequest-events-resource
+      tag: latest
+
+resources:
+  - name: github-pr-events
+    type: pull-request-events
+    check_every: 30s
+    source:
+      access_token: ((github-access-token))
+      owner: ((repo-owner))
+      repo: ((repo-name))
+      graphql_api: ((github-graphql-api))
+      base_branch: master
+      first: 1
+      states:
+        - MERGED
+        - CLOSED
+
+jobs:
+- name: test
+  plan:
+    - get: github-pr-events
+      trigger: true
+    - task: test
+      config:
+        platform: linux
+
+        image_resource:
+          type: docker-image
+          source:
+            repository: busybox
+
+        inputs:
+          - name: github-pr-events
+
+        run:
+          path: cat
+          args:
+            - github-pr-events/pull_request
+
+
