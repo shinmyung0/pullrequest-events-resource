@@ -8,6 +8,10 @@ It is rather meant to provide information about merged or closed pull request br
 
 **This resource currently only supports Github**
 
+**[Docker Hub Link][d-hub]**
+
+[d-hub]: https://hub.docker.com/r/shinmyung0/pullrequest-events-resource/
+
 [concourse-resource]: https://concourse.ci/implementing-resources.html
 [git-issue]: https://github.com/jtarchie/github-pullrequest-resource/issues/128
 [gpr]: https://github.com/jtarchie/github-pullrequest-resource
