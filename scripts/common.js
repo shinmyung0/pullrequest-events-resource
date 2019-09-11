@@ -122,9 +122,12 @@ async function getMergedPullRequests(stdinConfig) {
 
   // if a version was passed in, set .cursor as after
   // to grab only the versions after the cursor
+  // We'll also only sort descending to get our initial list of PRs
   let after = undefined;
+  let sort = "DESC";
   if (stdinConfig["version"]) {
     after = stdinConfig["version"].cursor
+    sort = "ASC"
   }
   
 
@@ -148,6 +151,7 @@ async function getMergedPullRequests(stdinConfig) {
       $baseBranch: String!, 
       $first: Int!,
       $after: String,
+      $sort: OrderDirection!,
       $states: [PullRequestState!]!
     ) {
       repository(owner: $owner, name: $repo) {
@@ -157,7 +161,7 @@ async function getMergedPullRequests(stdinConfig) {
           first: $first,
           baseRefName: $baseBranch, 
           states: $states, 
-          orderBy:{field:UPDATED_AT, direction:ASC},
+          orderBy:{field:UPDATED_AT, direction:$sort},
           after: $after
         ) {
           edges {
@@ -187,12 +191,18 @@ async function getMergedPullRequests(stdinConfig) {
       baseBranch,
       first,
       after,
-      states
+      states,
+      sort,
     }
   });
 
-  return resp.data.repository.pullRequests.edges
-
+  const prList = resp.data.repository.pullRequests.edges;
+  // Return the reversed list if this was the original lookup
+  if (sort === "DESC") {
+    return prList.slice().reverse();
+  } else {
+    return prList;
+  }
 }
 
 
