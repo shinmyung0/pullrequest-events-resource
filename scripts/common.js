@@ -172,6 +172,7 @@ async function getMergedPullRequests(stdinConfig) {
               closed
               mergedAt
               closedAt
+              updatedAt
             }
           }
         }
@@ -218,6 +219,7 @@ function convertToVersions(pullRequests, sourceConfig) {
       url: pr.node.url,
       baseBranch: pr.node.baseRefName,
       headBranch: pr.node.headRefName,
+      Updatedtime: pr.node.UpdatedAt,
       state: finalState,
       // if merged or closed will have either of these timestamps
       // merged prs have both merged and closed
