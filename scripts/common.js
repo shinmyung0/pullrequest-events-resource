@@ -77,7 +77,7 @@ function getSourceConfig(configJson) {
       const sourceDefaults = {
         graphql_api: "https://api.github.com/graphql",
         base_branch: "master",
-        first: 3,
+        last: 3,
         states: [
           "MERGED",
           "CLOSED"
@@ -116,7 +116,7 @@ async function getMergedPullRequests(stdinConfig) {
   const baseBranch = sourceConfig["base_branch"]
   const owner = sourceConfig["owner"]
   const repo = sourceConfig["repo"]
-  const first = sourceConfig["first"]
+  const last = sourceConfig["last"]
   const states = sourceConfig["states"]
 
 
@@ -146,7 +146,7 @@ async function getMergedPullRequests(stdinConfig) {
       $owner: String!, 
       $repo: String!, 
       $baseBranch: String!, 
-      $first: Int!,
+      last: Int!,
       $after: String,
       $states: [PullRequestState!]!
     ) {
@@ -154,7 +154,7 @@ async function getMergedPullRequests(stdinConfig) {
         nameWithOwner
         url 
         pullRequests(
-          first: $first,
+          last: $last,
           baseRefName: $baseBranch, 
           states: $states, 
           orderBy:{field:UPDATED_AT, direction:ASC},
@@ -185,7 +185,7 @@ async function getMergedPullRequests(stdinConfig) {
       owner,
       repo,
       baseBranch,
-      first,
+      last,
       after,
       states
     }
