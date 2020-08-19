@@ -146,7 +146,7 @@ async function getMergedPullRequests(stdinConfig) {
       $owner: String!, 
       $repo: String!, 
       $baseBranch: String!, 
-      last: Int!,
+      $last: Int!,
       $after: String,
       $states: [PullRequestState!]!
     ) {
